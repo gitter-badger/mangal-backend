@@ -31,9 +31,10 @@ describe("Operations on taxa", function() {
 
     });
 
-    describe("Adding multiple taxa", function() {
+    describe("Adding multiple taxa", function( ) {
 
-        it("should work with multiple unique taxa", {
+        it("should work with multiple unique taxa", function() {
+
             var multiple_taxa = [
                 {
                     name: "Lamellodiscus acanthopagri",
