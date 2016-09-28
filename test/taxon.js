@@ -8,7 +8,6 @@ var should = chai.should();
 
 chai.use(chaiHttp);
 
-
 describe("Operations on taxa", function() {
 
     describe("Adding a taxon", function() {
@@ -29,6 +28,33 @@ describe("Operations on taxa", function() {
 
         it("should not work if the taxon is not unique");
         it("should not work if the taxon has no name");
+
+    });
+
+    describe("Adding multiple taxa", function() {
+
+        it("should work with multiple unique taxa", {
+            var multiple_taxa = [
+                {
+                    name: "Lamellodiscus acanthopagri",
+                    eol: 11989425
+                }, {
+                    name: "Lamellodiscus confusus",
+                    eol: 17922356
+                }
+            ];
+
+            chai.request(server)
+            .post('/api/v0/taxon')
+            .send(data)
+            .end(function(req,res){
+              res.should.have.status(201);
+              done();
+            });
+
+        });
+
+        it("should work with non-unique taxa");
 
     });
 
