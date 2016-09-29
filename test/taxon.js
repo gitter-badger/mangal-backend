@@ -47,7 +47,7 @@ describe("Operations on taxa", function() {
 
             chai.request(server)
             .post('/api/v0/taxon')
-            .send(data)
+            .send(multiple_taxa)
             .end(function(req,res){
               res.should.have.status(201);
               done();
