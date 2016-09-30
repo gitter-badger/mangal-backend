@@ -4,9 +4,9 @@
   "description": "Backend server with API services for the mangal.io project",
   "main": "index.js",
   "scripts": {
-    "deploy_db": "createdb mangal_dev; psql -U postgres -c mangal_dev -c 'CREATE EXTENSION postgis';",
-    "destroy_db": "dropdb mangal_dev",
-    "test": "node_modules/.bin/mocha"
+    "deploy_db": "createdb mangal_dev; psql -U postgres -d mangal_dev -c 'CREATE EXTENSION postgis';",
+    "deploy_test_db": "createdb mangal_test; psql -U postgres -d mangal_test -c 'CREATE EXTENSION postgis';",
+    "test": "export NODE_ENV=test && node_modules/.bin/mocha"
   },
   "repository": {
     "type": "git",
@@ -34,10 +34,10 @@
     "sequelize": "^3.24.3"
   },
   "devDependencies": {
-    "chai": "^3.5.0",
-    "chai-http": "^3.0.0",
     "mocha": "^3.1.0",
     "nodemon": "^1.10.2",
-    "sequelize-cli": "^2.4.0"
+    "sequelize-cli": "^2.4.0",
+    "should": "^11.1.0",
+    "supertest": "^2.0.0"
   }
 }

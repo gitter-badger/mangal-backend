@@ -3,72 +3,36 @@ var express    = require('express');
 var bodyParser = require('body-parser');
 var db         = require('./models');
 var http       = require('http');
-var epilogue   = require('epilogue');
 
 // Init express app
 var app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-// test login authentification
-db.sequelize
-  .authenticate()
-  .then(function(success) {
-    console.log('Connection has been established successfully.');
-  })
-  .catch(function (err) {
-    console.log('Unable to connect to the database:', err);
-  });
+// Init ressources
+var api = require('./ressources').initialize(app);
 
-// Init Epilogue
-epilogue.initialize({
-  app: app,
-  sequelize: db.sequelize
-});
+// Start DB and server
+if(process.env.NODE_ENV == 'development') {
 
-var baseapiurl = '/api/v0/'
+  // test authentification
+  db.sequelize
+    .authenticate()
+    .then(function(success) {
+      console.log('Connection has been established successfully.');
+    })
+    .catch(function (err) {
+      console.log('Unable to connect to the database:', err);
+    });
 
-function endpointize(endpoints, baseurl) {
-    return endpoints.map(
-        function(e){
-            return(baseurl+e)
-        }
-    )
-}
+  // sync DB
+  db.sequelize.sync({force:true});
 
-// Create REST resources
-var taxonResource = epilogue.resource({
-  model: db.taxon,
-  endpoints: endpointize(['taxon','taxon/:id'])
-});
-
-var datasetResource = epilogue.resource({
-  model: db.dataset,
-  endpoints: endpointize(['dataset','dataset/:id'])
-});
-
-var interactionResource = epilogue.resource({
-  model: db.interaction,
-  endpoints: endpointize(['interaction','interaction/:id'])
-});
-
-var instanceResource = epilogue.resource({
-  model: db.instance,
-  endpoints: endpointize(['instance','instance/:id'])
-});
-
-var networkResource = epilogue.resource({
-  model: db.network,
-  endpoints: endpointize(['network','network/:id'])
-});
-
-// Sync database with new models
-db.sequelize.sync({force:true});
+};
 
 // start server
 var port = process.env.PORT || 3000;
 server = http.createServer(app);
 server.listen(port);
 
-// export server for unit testing
-module.exports = server
+module.exports = server;

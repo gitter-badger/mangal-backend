@@ -1,69 +1,96 @@
 var fs = require('fs');
-var chai = require('chai');
-var chaiHttp = require('chai-http');
-var server = require('../index.js');
-var should = chai.should();
+var db = require('../models');
+var request = require('supertest');
+var should = require('should')
+// Set app test
+var server = require('../')
+var addr = 'localhost:3000'
 
-// TODO: clean the database before running test
+beforeEach(function(done) {
+    db.sequelize.sync({
+        force: true
+    }).then(function() {
+        done();
+    });
+});
 
-chai.use(chaiHttp);
+describe("POSTing a taxon", function() {
 
-describe("Operations on taxa", function() {
+    it("should work if the taxon is not unique", function(done) {
 
-    describe("Adding a taxon", function() {
+        var data = [{
+            "name": "Vulpes vulpes",
+            "vernacular": "Red fox",
+            "tsn": 180604
+        }, {
+            "name": "Alces alces",
+            "vernacular": "Moose",
+            "tsn": 180604
+        }];
 
-        it("should work if the taxon is unique",function(done){
+        var endpoint = '/api/v0/taxon'
 
-          var file = './test/data/taxon/vulpes_vulpes.json'
-          var data = JSON.parse(fs.readFileSync(file, 'utf8'));
+        request(addr)
+            .post(endpoint)
+            .send(data[0])
+            .end(function() {
+                request(addr)
+                    .post(endpoint)
+                    .send(data[1])
+                    .expect(400,done)
+            })
+    });
 
-          chai.request(server)
+    it("should not work if the taxon has no name", function(done) {
+        var data = {
+            "vernacular": "Moose",
+            "tsn": 180604
+        };
+
+        request(addr)
             .post('/api/v0/taxon')
             .send(data)
-            .end(function(req,res){
-              res.should.have.status(201);
-              done();
-            });
-          });
-
-        it("should not work if the taxon is not unique");
-        it("should not work if the taxon has no name");
-
+            .expect(400, done)
     });
-
-    describe("Adding multiple taxa", function( ) {
-
-        it("should work with multiple unique taxa", function() {
-
-            var multiple_taxa = [
-                {
-                    name: "Lamellodiscus acanthopagri",
-                    eol: 11989425
-                }, {
-                    name: "Lamellodiscus confusus",
-                    eol: 17922356
-                }
-            ];
-
-            chai.request(server)
-            .post('/api/v0/taxon')
-            .send(multiple_taxa)
-            .end(function(req,res){
-              res.should.have.status(201);
-              done();
-            });
-
-        });
-
-        it("should work with non-unique taxa");
-
-    });
-
-    describe("GETting a taxon", function() {
-
-        it("should return 404 if there is no taxon with this ID");
-        it("should return a taxon with the correct ID if it exists");
-
-    })
 
 });
+
+describe("GETting a taxon", function() {
+
+    it("should return 200 status and empty json/body if ID doesn't exist", function(done) {
+
+        request(addr)
+            .get('/api/v0/taxon?tsn=0000')
+            .expect('Content-Type', /json/)
+            .expect(200)
+            .end(function (err, res) {
+                 res.body.length.should.equal(0);
+                 done();
+            })
+
+    });
+    it("should return a taxon with the correct ID if it exists", function(done){
+           
+           var data = {
+               "name": "Echiura",
+               "bold": 27333
+        };
+           
+           request(addr)
+              .post('/api/v0/taxon')
+              .send(data)
+              .expect(201)
+              .end(function(){
+                     request(addr)
+                            .get('/api/v0/taxon?name=Echiura')
+                            .expect('Content-Type', /json/)
+                            .expect(200)
+                            .end(function(err, res){
+                                   res.body.length.should.equal(1);
+                                   res.body[0].bold.should.be.equal(data.bold);
+                                   done();
+                            })
+              });
+    });
+
+})
