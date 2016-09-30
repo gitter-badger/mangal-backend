@@ -40,6 +40,27 @@ describe("POSTing a taxon", function() {
                     .expect(400,done)
             })
     });
+    
+    it("should return 20X and an array if more than one taxon is uploaded", function(done) {
+
+        var data = [{
+            "name": "Vulpes vulpes",
+            "vernacular": "Red fox",
+            "tsn": 180604
+        }, {
+            "name": "Alces alces",
+            "vernacular": "Moose",
+            "tsn": 180604
+        }];
+
+        var endpoint = '/api/v0/taxon'
+
+        request(addr)
+            .post(endpoint)
+            .send(data)
+            .expect(202, done);
+
+    });
 
     it("should not work if the taxon has no name", function(done) {
         var data = {
